@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TenRun WebView</string>
+    <string name="title_activity_main">TenRun WebView</string>
+    <string name="package_name">com.tenrun.webview</string>
+    <string name="custom_url_scheme">com.tenrun.webview</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许所有明文HTTP流量 -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <!-- 信任系统预装的CA证书 -->
+            <certificates src="system" />
+            <!-- 信任用户添加的CA证书 -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- 允许特定域名使用明文HTTP -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- 添加您需要支持的其他域名 -->
+    </domain-config>
+</network-security-config>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>腾润WebView应用</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' capacitor: https: http: data: blob: 'unsafe-inline'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>腾润WebView应用</h1>
+      <div class="navigation-controls">
+        <button id="back-button" disabled>返回</button>
+        <button id="forward-button" disabled>前进</button>
+        <button id="reload-button">刷新</button>
+      </div>
+      <div class="url-container">
+        <input type="text" id="url-input" placeholder="输入网址..." value="https://www.baidu.com">
+        <button id="go-button">访问</button>
+      </div>
+    </header>
+    
+    <main class="webview-container">
+      <div id="loading-indicator">加载中...</div>
+      <div id="webview-placeholder">网页内容将在这里显示</div>
+    </main>
+  </div>
+  <script src="./js/renderer.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

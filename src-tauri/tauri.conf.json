@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "TenRun WebView",
+  "version": "1.0.0",
+  "identifier": "com.tenrun.webview",
+
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist"
+  },
+
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "TenRun WebView",
+        "width": 800,
+        "height": 600,
+        "fullscreen": false,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+
+  "bundle": {
+    "active": true,
+    "icon": ["../assets/icons/icon.png"],
+    "android": {
+      "minSdkVersion": 24,
+      "versionCode": 1
+    }
+  },
+
+  "plugins": {
+    "http": {
+      "all": true,
+      "scope": ["https://**"]
+    },
+    "shell": {
+      "open": true
+    }
+  }
+}

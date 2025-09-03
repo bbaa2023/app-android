@@ -1,0 +1,35 @@
+{
+  "name": "tenrun-webview-app",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:android:init": "tauri android init",
+    "tauri:android:dev": "tauri android dev",
+    "tauri:android:build": "tauri android build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "这是一个使用Tauri v2框架开发的WebView Android应用，可以将网页内容打包为Android APK。",
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "extract-zip": "^2.0.1",
+    "global-agent": "^3.0.0",
+    "@tauri-apps/api": "^2.0.0-alpha.11"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0-alpha.17",
+    "vite": "^4.4.9"
+  }
+}

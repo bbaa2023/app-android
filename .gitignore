@@ -1,0 +1,41 @@
+# Tauri build outputs
+src-tauri/target/
+src-tauri/gen/
+src-tauri/WixTools
+
+# Node dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Android specific
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/keystore.jks
+android/*.keystore
+android/keystore.properties
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific
+.DS_Store
+Thumbs.db

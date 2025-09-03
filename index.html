@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>腾润WebView应用</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-header">
+    <div class="window-controls">
+      <button id="minimize-btn" class="window-btn">—</button>
+      <button id="maximize-btn" class="window-btn">□</button>
+      <button id="close-btn" class="window-btn">×</button>
+    </div>
+    <h1>腾润WebView应用</h1>
+  </div>
+  <div class="container">
+    <div id="webview-container">
+      <!-- 这里将加载网页内容 -->
+      <webview id="webview" src="https://www.example.com" webpreferences="nodeIntegration=false, contextIsolation=true" style="width:100%; height:500px;"></webview>
+    </div>
+    <div class="controls">
+      <button id="back-button">返回</button>
+      <button id="forward-button">前进</button>
+      <button id="reload-button">刷新</button>
+      <input type="text" id="url-input" placeholder="输入网址...">
+      <button id="go-button">访问</button>
+    </div>
+  </div>
+  <script src="./renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+// 添加到android/app/build.gradle文件末尾
+
+android {
+    defaultConfig {
+        // 应用版本信息
+        versionCode 1
+        versionName "1.0.0"
+        
+        // 多语言支持
+        resConfigs "zh-rCN"
+        
+        // 启用MultiDex支持
+        multiDexEnabled true
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    
+    // 签名配置
+    signingConfigs {
+        release {
+            // 这些值将在CI/CD过程中被替换
+            storeFile file("${System.getenv('KEYSTORE_FILE') ?: 'keystore.jks'}")
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'password'
+            keyAlias System.getenv('KEY_ALIAS') ?: 'key0'
+            keyPassword System.getenv('KEY_PASSWORD') ?: 'password'
+        }
+    }
+    
+    // 打包配置
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "tenrun-webview-${variant.name}-v${variant.versionName}.apk"
+        }
+    }
+}
+
+// 依赖配置
+dependencies {
+    // 添加MultiDex支持
+    implementation "androidx.multidex:multidex:2.0.1"
+    
+    // 添加WebView增强支持
+    implementation "androidx.webkit:webkit:1.4.0"
+}
