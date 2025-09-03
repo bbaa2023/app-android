@@ -63,16 +63,20 @@ jobs:
       - name: 构建Web应用
         run: npm run build
 
+      # ✅ 初始化 Android 项目必须在解码 keystore 前
       - name: 初始化 Tauri Android 项目
         run: npx tauri android init
 
+      - name: 创建 Android 目录（确保存在）
+        run: mkdir -p ${{ github.workspace }}/src-tauri/gen/android
+
       - name: 解码Keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/keystore.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/src-tauri/gen/android/keystore.jks
 
       - name: 创建keystore.properties
         run: |
-          cat > src-tauri/gen/android/keystore.properties << EOF
+          cat > ${{ github.workspace }}/src-tauri/gen/android/keystore.properties << EOF
           storeFile=keystore.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
@@ -86,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+          path: ${{ github.workspace }}/src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
