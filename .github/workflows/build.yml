@@ -44,7 +44,7 @@ jobs:
       - name: 设置Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: 'npm'
 
       - name: 安装依赖
@@ -63,32 +63,30 @@ jobs:
       - name: 构建Web应用
         run: npm run build
 
-      - name: 添加Android平台
-        run: npm run tauri:android:init
-        working-directory: ${{ github.workspace }}
+      - name: 初始化 Tauri Android 项目
+        run: npx tauri android init
 
       - name: 解码Keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/keystore.jks
 
       - name: 创建keystore.properties
         run: |
-          cat > android/keystore.properties << EOF
+          cat > src-tauri/gen/android/keystore.properties << EOF
           storeFile=keystore.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
-      - name: 构建Android应用
-        run: npm run tauri:android:build
-        working-directory: ${{ github.workspace }}
+      - name: 构建 Tauri Android APK
+        run: npx tauri android build --release
 
       - name: 上传APK文件
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: ${{ github.workspace }}/src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+          path: src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
