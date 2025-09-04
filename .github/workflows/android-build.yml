@@ -71,16 +71,6 @@ jobs:
       - name: 初始化 Tauri Android 项目
         run: npx tauri android init
 
-      - name: 检查 Android 项目目录
-        run: |
-          if [ ! -d "${{ github.workspace }}/src-tauri/gen/android" ]; then
-            echo "Android Studio project directory 未创建，初始化失败"
-            exit 1
-          fi
-
-      - name: 创建 Android 目录（确保存在）
-        run: mkdir -p ${{ github.workspace }}/src-tauri/gen/android
-
       - name: 解码Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/src-tauri/gen/android/keystore.jks
@@ -95,7 +85,7 @@ jobs:
           EOF
 
       - name: 构建 Tauri Android APK
-        run: npx tauri android build
+        run: npx tauri android build -- --release
 
       - name: 上传APK文件
         uses: actions/upload-artifact@v4
