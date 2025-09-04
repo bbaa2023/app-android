@@ -14,10 +14,10 @@
 
 ### 步骤 2: 创建 BootReceiver
 
-创建 `android/app/src/main/java/com/example/webview/BootReceiver.kt` 文件：
+创建 `android/app/src/main/java/com/tenrun/webview/BootReceiver.kt` 文件：
 
 ```kotlin
-package com.example.webview
+package com.tenrun.webview
 
 import android.content.BroadcastReceiver
 import android.content.Context

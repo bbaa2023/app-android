@@ -54,8 +54,8 @@ jobs:
 
       - name: 设置环境变量
         run: |
-          echo "APP_NAME=${{ secrets.APP_NAME || 'WebView App' }}" >> $GITHUB_ENV
-          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.example.webview' }}" >> $GITHUB_ENV
+          echo "APP_NAME=${{ secrets.APP_NAME || 'TenRun WebView' }}" >> $GITHUB_ENV
+          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.tenrun.webview' }}" >> $GITHUB_ENV
           if [ -n "${{ github.event.inputs.version }}" ]; then
             echo "APP_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" =~ refs/tags/v(.+) ]]; then

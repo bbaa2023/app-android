@@ -6,8 +6,47 @@
 
 set -e
 
+# 加载.env.local文件（如果存在）
+if [ -f "../.env.local" ]; then
+  echo "加载.env.local环境变量..."
+  export $(grep -v '^#' ../.env.local | xargs -d '\n')
+fi
+
 # 默认构建类型
 BUILD_TYPE="debug"
+
+# 包名检测与自动重建机制
+detect_and_rebuild() {
+  echo "检查包名配置一致性..."
+  
+  # 获取.env.local中的BUNDLE_ID
+  ENV_BUNDLE_ID=${BUNDLE_ID:-"com.tenrun.webview"}
+  
+  # 获取tauri.conf.json中的identifier
+  TAURI_IDENTIFIER=$(grep -oP '(?<="identifier": ")[^"]+' ../src-tauri/tauri.conf.json || echo "com.tenrun.webview")
+  
+  echo "- .env.local中的BUNDLE_ID: $ENV_BUNDLE_ID"
+  echo "- tauri.conf.json中的identifier: $TAURI_IDENTIFIER"
+  
+  # 检查是否需要重建
+  if [ "$ENV_BUNDLE_ID" != "$TAURI_IDENTIFIER" ]; then
+    echo "警告：包名配置不一致！需要重建Android项目。"
+    
+    # 删除旧的Android生成目录
+    if [ -d "../src-tauri/gen/android" ]; then
+      echo "删除旧的Android生成目录..."
+      rm -rf ../src-tauri/gen/android
+    fi
+    
+    echo "注意：Android项目将在构建过程中自动重建。"
+  fi
+}
+
+# 运行包名检测
+urgent_rebuild=false
+if [ -d "../src-tauri/gen/android" ]; then
+  detect_and_rebuild
+fi
 
 # 检查参数
 if [ "$1" = "release" ]; then
