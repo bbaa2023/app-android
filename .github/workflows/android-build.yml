@@ -40,17 +40,41 @@ jobs:
           build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
           ndk: ${{ env.ANDROID_NDK_VERSION }}
 
-      - name: 安装Rust
+      - name: 安装Rust (带调试信息)
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           components: rustfmt, clippy
-          targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
+          targets: armv7-linux-androideabi,aarch64-linux-android,i686-linux-android,x86_64-linux-android
+      
+      - name: 调试Rust环境
+        run: |
+          echo "检查Rust安装状态..."
+          which rustc cargo rustup || echo "部分Rust工具未找到"
+          rustc --version || echo "rustc版本检查失败"
+          cargo --version || echo "cargo版本检查失败"
+          rustup --version || echo "rustup版本检查失败"
+          echo "
+检查已安装的目标架构:"
+          rustup target list --installed || echo "目标架构检查失败"
+          echo "
+检查环境变量:"
+          printenv | grep -i rust || echo "未找到Rust相关环境变量"
+          echo "
+检查PATH:"
+          echo $PATH
+          echo "
+检查工作目录:"
+          pwd
+          ls -la
 
-      - name: 设置Cargo缓存
+      - name: 设置Cargo缓存 (优化版)
         uses: Swatinem/rust-cache@v2
         with:
-          key: cargo-cache-android
+          key: cargo-cache-android-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-cache-android-${{ hashFiles('**/Cargo.lock') }}
+            cargo-cache-android-
 
       - name: 设置Node.js
         uses: actions/setup-node@v3
@@ -108,12 +132,18 @@ jobs:
           echo "删除旧的Android生成目录..."
           rm -rf src-tauri/gen/android || true
 
-      - name: 初始化 Tauri Android 项目
+      - name: 初始化 Tauri Android 项目 (带调试信息)
         run: |
           echo "使用npm script初始化Tauri Android项目..."
-          npm run tauri:android:init || {
-            echo "初始化失败，显示错误日志并尝试重新初始化..." >&2
-            npm run tauri:android:init -- --verbose
+          echo "检查Tauri CLI版本..."
+          tauri --version || echo "Tauri CLI未找到"
+          echo "检查环境变量..."
+          printenv | grep -E "APP_|BUNDLE_|REMOTE_|DEFAULT_"
+          echo "开始初始化..."
+          npm run tauri:android:init -- --verbose || {
+            echo "初始化失败，尝试使用更多调试选项..." >&2
+            RUST_LOG=debug npm run tauri:android:init -- --verbose
+            exit 1
           }
 
       - name: 验证Tauri Android初始化结果
@@ -149,21 +179,52 @@ jobs:
             echo "keystore.properties创建成功"
           fi
 
-      - name: 构建前环境检查
+      - name: 全面检查构建环境
         run: |
-          echo "环境变量检查："
-          printenv | grep -E "APP_|BUNDLE_|REMOTE_|DEFAULT_"
-          echo "系统信息："
-          node --version
-          npm --version
-          rustc --version
-          cargo --version
-          java --version
-          gradle --version || true
-          echo "Android环境检查："
-          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "🔍 全面检查构建环境..."
+          echo "
+=== Rust 环境信息 ==="
+          which rustc cargo rustup || echo "部分Rust工具未找到"
+          rustc --version || echo "rustc版本检查失败"
+          cargo --version || echo "cargo版本检查失败"
+          rustup --version || echo "rustup版本检查失败"
+          echo "已安装的目标架构:'"
+          rustup target list --installed || echo "目标架构检查失败"
+          
+          echo "
+=== Android 环境信息 ==="
           echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
-          echo "PATH: $PATH"
+          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+          echo "ANDROID_NDK_VERSION: ${{ env.ANDROID_NDK_VERSION }}"
+          echo "ANDROID_SDK_VERSION: ${{ env.ANDROID_SDK_VERSION }}"
+          echo "ANDROID_BUILD_TOOLS_VERSION: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          ls -la $ANDROID_SDK_ROOT || echo "SDK目录不存在或无权限访问"
+          ls -la $ANDROID_NDK_HOME || echo "NDK目录不存在或无权限访问"
+          
+          echo "
+=== Node.js 环境信息 ==="
+          node --version || echo "Node.js版本检查失败"
+          npm --version || echo "npm版本检查失败"
+          echo "npm全局安装的包:'"
+          npm list -g --depth=0 || echo "无法列出全局包"
+          
+          echo "
+=== 系统环境信息 ==="
+          echo "当前工作目录: $(pwd)"
+          echo "操作系统: $(uname -a)"
+          echo "内存信息: $(free -m)"
+          echo "磁盘空间: $(df -h)"
+          echo "CPU信息: $(lscpu | head -10)"
+          
+          echo "
+=== 环境变量 ==="
+          printenv | sort | head -50
+          
+          echo "
+=== Tauri 相关检查 ==="
+          tauri --version || echo "Tauri CLI未找到"
+          echo "src-tauri目录内容:'"
+          ls -la src-tauri || echo "src-tauri目录不存在"
 
       - name: 构建 Tauri Android APK
         run: |
