@@ -73,7 +73,8 @@ jobs:
 
       - name: 解码Keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/src-tauri/gen/android/keystore.jks
+          mkdir -p src-tauri/gen/android
+          base64 -d keystore.b64 > src-tauri/gen/android/keystore.jks
 
       - name: 创建keystore.properties
         run: |
