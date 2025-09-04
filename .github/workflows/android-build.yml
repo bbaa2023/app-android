@@ -68,6 +68,9 @@ jobs:
       - name: 构建Web应用
         run: npm run build
 
+      - name: 清理旧的 Android 项目目录
+        run: rm -rf src-tauri/gen/android || true
+
       - name: 初始化 Tauri Android 项目
         run: npx tauri android init
 
