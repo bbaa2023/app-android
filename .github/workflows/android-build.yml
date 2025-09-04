@@ -3,8 +3,7 @@ name: Tauri Android Build
 on:
   push:
     branches: [ main ]
-    tags:
-      - 'v*'
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -39,11 +38,12 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+          targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
 
       - name: 设置Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: 'npm'
 
       - name: 安装依赖
@@ -54,34 +54,48 @@ jobs:
 
       - name: 设置环境变量
         run: |
-          echo "APP_NAME=${{ secrets.APP_NAME }}" >> $GITHUB_ENV
-          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID }}" >> $GITHUB_ENV
-          echo "APP_VERSION=${{ secrets.APP_VERSION }}" >> $GITHUB_ENV
-          echo "REMOTE_URL=${{ secrets.REMOTE_URL }}" >> $GITHUB_ENV
+          echo "APP_NAME=${{ secrets.APP_NAME || 'WebView App' }}" >> $GITHUB_ENV
+          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.example.webview' }}" >> $GITHUB_ENV
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "APP_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" =~ refs/tags/v(.+) ]]; then
+            echo "APP_VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+          else
+            echo "APP_VERSION=${{ secrets.APP_VERSION || '1.0.0' }}" >> $GITHUB_ENV
+          fi
+          echo "REMOTE_URL=${{ secrets.REMOTE_URL || 'https://example.com' }}" >> $GITHUB_ENV
 
       - name: 构建Web应用
         run: npm run build
 
-      - name: 添加Android平台
-        run: npm run tauri:android:init
-        working-directory: ${{ github.workspace }}
+      - name: 初始化 Tauri Android 项目
+        run: npx tauri android init
+
+      - name: 检查 Android 项目目录
+        run: |
+          if [ ! -d "${{ github.workspace }}/src-tauri/gen/android" ]; then
+            echo "Android Studio project directory 未创建，初始化失败"
+            exit 1
+          fi
+
+      - name: 创建 Android 目录（确保存在）
+        run: mkdir -p ${{ github.workspace }}/src-tauri/gen/android
 
       - name: 解码Keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/src-tauri/gen/android/keystore.jks
 
       - name: 创建keystore.properties
         run: |
-          cat > android/keystore.properties << EOF
+          cat > ${{ github.workspace }}/src-tauri/gen/android/keystore.properties << EOF
           storeFile=keystore.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
-      - name: 构建Android应用
-        run: npm run tauri:android:build
-        working-directory: ${{ github.workspace }}
+      - name: 构建 Tauri Android APK
+        run: npx tauri android build --release
 
       - name: 上传APK文件
         uses: actions/upload-artifact@v4
@@ -103,7 +117,12 @@ jobs:
       - name: 创建GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release/*.apk
+          files: release/app-release.apk
+          name: Release ${{ github.ref_name }}
+          body: |
+            Tauri WebView Android App ${{ github.ref_name }}
+            自动构建的Android APK发布版本
           draft: false
           prerelease: false
-          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

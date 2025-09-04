@@ -6,20 +6,29 @@ use std::{env, fs};
 use tauri::{Manager, WebviewWindowBuilder};
 use std::path::Path;
 
-// 从.env.local文件读取环境变量
+// 从.env文件读取环境变量
 fn load_env_from_file() {
-    let env_file = ".env.local";
-    if Path::new(env_file).exists() {
-        if let Ok(content) = fs::read_to_string(env_file) {
-            for line in content.lines() {
-                if line.starts_with('#') || line.trim().is_empty() {
-                    continue;
-                }
-                if let Some((key, value)) = line.split_once('=') {
-                    let key = key.trim();
-                    let value = value.trim().trim_matches('"');
-                    if env::var(key).is_err() {
-                        env::set_var(key, value);
+    // 首先尝试从.env.local读取（优先级更高）
+    let env_files = [".env.local", ".env"];
+    
+    for env_file in &env_files {
+        if Path::new(env_file).exists() {
+            if let Ok(content) = fs::read_to_string(env_file) {
+                for line in content.lines() {
+                    // 忽略注释和空行
+                    if line.starts_with('#') || line.trim().is_empty() {
+                        continue;
+                    }
+                    
+                    // 解析键值对
+                    if let Some((key, value)) = line.split_once('=') {
+                        let key = key.trim();
+                        let value = value.trim().trim_matches('"');
+                        
+                        // 只在环境变量未设置时设置
+                        if env::var(key).is_err() {
+                            env::set_var(key, value);
+                        }
                     }
                 }
             }
@@ -33,8 +42,9 @@ fn main() {
     load_env_from_file();
     
     // 从环境变量获取远程URL，如果没有设置则使用默认值
-    let remote_url = env::var("REMOTE_URL")
-        .unwrap_or_else(|_| "https://example.com".to_string());
+    let remote_url = env::var("DEFAULT_URL")
+        .unwrap_or_else(|_| env::var("REMOTE_URL")
+        .unwrap_or_else(|_| "https://www.example.com".to_string()));
     
     // 打印加载的URL（仅在开发模式下）
     #[cfg(debug_assertions)]

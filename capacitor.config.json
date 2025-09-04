@@ -8,9 +8,12 @@
   },
   "android": {
     "backgroundColor": "#2c3e50",
-    "allowMixedContent": true,
+    "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": false,
+    "webView": {
+      "allowHardwareAcceleration": true
+    }
   },
   "plugins": {
     "SplashScreen": {
