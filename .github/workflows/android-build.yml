@@ -45,7 +45,7 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-          targets: armv7-linux-androideabi,aarch64-linux-android,i686-linux-android,x86_64-linux-android
+          targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
       
       - name: 调试Rust环境
         run: |
@@ -54,17 +54,13 @@ jobs:
           rustc --version || echo "rustc版本检查失败"
           cargo --version || echo "cargo版本检查失败"
           rustup --version || echo "rustup版本检查失败"
-          echo "
-检查已安装的目标架构:"
+          echo "检查已安装的目标架构:"
           rustup target list --installed || echo "目标架构检查失败"
-          echo "
-检查环境变量:"
+          echo "检查环境变量:"
           printenv | grep -i rust || echo "未找到Rust相关环境变量"
-          echo "
-检查PATH:"
-          echo $PATH
-          echo "
-检查工作目录:"
+          echo "检查PATH:"
+          echo "$PATH"
+          echo "检查工作目录:"
           pwd
           ls -la
 

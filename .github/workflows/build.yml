@@ -34,13 +34,11 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: 安装Rust (带调试信息)
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          profile: minimal
-          override: true
           components: rustfmt, clippy
-          target: armv7-linux-androideabi,aarch64-linux-android,i686-linux-android,x86_64-linux-android
+          targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
       
       - name: 设置Cargo缓存 (优化版)
         uses: Swatinem/rust-cache@v2
@@ -106,7 +104,7 @@ jobs:
       - name: 设置环境变量
         run: |
           echo "APP_NAME=${{ secrets.APP_NAME || 'WebView App' }}" >> $GITHUB_ENV
-          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.example.webview' }}" >> $GITHUB_ENV
+          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.tenrun.webview' }}" >> $GITHUB_ENV
           echo "APP_VERSION=${{ github.event.inputs.version || secrets.APP_VERSION || '1.0.0' }}" >> $GITHUB_ENV
           echo "REMOTE_URL=${{ secrets.REMOTE_URL || 'https://example.com' }}" >> $GITHUB_ENV
 
