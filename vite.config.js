@@ -21,7 +21,7 @@ export default defineConfig({
   define: {
     'process.env.APP_NAME': JSON.stringify(process.env.APP_NAME || 'Tauri WebView App'),
     'process.env.APP_VERSION': JSON.stringify(process.env.APP_VERSION || '1.0.0'),
-    'process.env.BUNDLE_ID': JSON.stringify(process.env.BUNDLE_ID || 'com.example.webview'),
+    'process.env.BUNDLE_ID': JSON.stringify(process.env.BUNDLE_ID || 'com.tenrun.webview'),
   },
   // 资源处理
   publicDir: 'assets',
