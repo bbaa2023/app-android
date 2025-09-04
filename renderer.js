@@ -186,8 +186,6 @@ window.electronAPI.getAppVersion().then(version => {
 
 // 初始化应用
 initializeNavigation();
-  console.log(`应用版本: ${version}`);
-});
 
 // 处理外部链接
 webview.addEventListener('new-window', (e) => {
