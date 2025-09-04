@@ -30,13 +30,23 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: 设置Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            build-tools;33.0.2
-            platforms;android-33
-            ndk;25.1.8937393
+      - name: 安装 Android SDK 组件
+        shell: bash
+        run: |
+          set -e
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}"
+          SDKMANAGER_BIN="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER_BIN" ]; then
+            echo "sdkmanager not found at $SDKMANAGER_BIN" >&2
+            echo "Listing cmdline-tools directory for debugging:" >&2
+            ls -la "${ANDROID_SDK_ROOT}/cmdline-tools" || true
+            exit 1
+          fi
+          yes | "$SDKMANAGER_BIN" --licenses || true
+          yes | "$SDKMANAGER_BIN" --install \
+            "platforms;android-33" \
+            "build-tools;33.0.2" \
+            "ndk;25.1.8937393"
 
       - name: 安装Rust (带调试信息)
         uses: dtolnay/rust-toolchain@stable
