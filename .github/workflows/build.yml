@@ -31,7 +31,12 @@ jobs:
           cache: gradle
 
       - name: 设置Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            build-tools;33.0.2
+            platforms;android-33
+            ndk;25.1.8937393
 
       - name: 安装Rust (带调试信息)
         uses: dtolnay/rust-toolchain@stable

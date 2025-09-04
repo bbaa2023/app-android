@@ -34,11 +34,12 @@ jobs:
           cache: gradle
 
       - name: 设置Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
         with:
-          api-level: ${{ env.ANDROID_SDK_VERSION }}
-          build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-          ndk: ${{ env.ANDROID_NDK_VERSION }}
+          packages: |
+            build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+            platforms;android-${{ env.ANDROID_SDK_VERSION }}
+            ndk;${{ env.ANDROID_NDK_VERSION }}
 
       - name: 安装Rust (带调试信息)
         uses: dtolnay/rust-toolchain@stable
