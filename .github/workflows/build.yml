@@ -39,7 +39,7 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-          targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
+          target: armv7-linux-androideabi,aarch64-linux-android,i686-linux-android,x86_64-linux-android
 
       - name: 设置Node.js
         uses: actions/setup-node@v3
