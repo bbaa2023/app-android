@@ -176,57 +176,51 @@ jobs:
             keyAlias=${{ secrets.KEY_ALIAS }}
             keyPassword=${{ secrets.KEY_PASSWORD }}
             EOF
-            echo "keystore.properties创建成功"
+            echo "keystore.properties created successfully"
           fi
 
-      - name: 全面检查构建环境
+      - name: Comprehensive Build Environment Check
         run: |
-          echo "🔍 全面检查构建环境..."
-          echo "
-=== Rust 环境信息 ==="
-          which rustc cargo rustup || echo "部分Rust工具未找到"
-          rustc --version || echo "rustc版本检查失败"
-          cargo --version || echo "cargo版本检查失败"
-          rustup --version || echo "rustup版本检查失败"
-          echo "已安装的目标架构:'"
-          rustup target list --installed || echo "目标架构检查失败"
+          echo "🔍 Comprehensive build environment check..."
+          echo "\n=== Rust Environment Information ==="
+          which rustc cargo rustup || echo "Some Rust tools not found"
+          rustc --version || echo "rustc version check failed"
+          cargo --version || echo "cargo version check failed"
+          rustup --version || echo "rustup version check failed"
+          echo "Installed target architectures:"
+          rustup target list --installed || echo "Target architectures check failed"
           
-          echo "
-=== Android 环境信息 ==="
+          echo "\n=== Android Environment Information ==="
           echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
           echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
           echo "ANDROID_NDK_VERSION: ${{ env.ANDROID_NDK_VERSION }}"
           echo "ANDROID_SDK_VERSION: ${{ env.ANDROID_SDK_VERSION }}"
           echo "ANDROID_BUILD_TOOLS_VERSION: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
-          ls -la $ANDROID_SDK_ROOT || echo "SDK目录不存在或无权限访问"
-          ls -la $ANDROID_NDK_HOME || echo "NDK目录不存在或无权限访问"
+          ls -la $ANDROID_SDK_ROOT || echo "SDK directory does not exist or no access permission"
+          ls -la $ANDROID_NDK_HOME || echo "NDK directory does not exist or no access permission"
           
-          echo "
-=== Node.js 环境信息 ==="
-          node --version || echo "Node.js版本检查失败"
-          npm --version || echo "npm版本检查失败"
-          echo "npm全局安装的包:'"
-          npm list -g --depth=0 || echo "无法列出全局包"
+          echo "\n=== Node.js Environment Information ==="
+          node --version || echo "Node.js version check failed"
+          npm --version || echo "npm version check failed"
+          echo "Globally installed npm packages:"
+          npm list -g --depth=0 || echo "Failed to list global packages"
           
-          echo "
-=== 系统环境信息 ==="
-          echo "当前工作目录: $(pwd)"
-          echo "操作系统: $(uname -a)"
-          echo "内存信息: $(free -m)"
-          echo "磁盘空间: $(df -h)"
-          echo "CPU信息: $(lscpu | head -10)"
+          echo "\n=== System Environment Information ==="
+          echo "Current working directory: $(pwd)"
+          echo "Operating system: $(uname -a)"
+          echo "Memory information: $(free -m)"
+          echo "Disk space: $(df -h)"
+          echo "CPU information: $(lscpu | head -10)"
           
-          echo "
-=== 环境变量 ==="
+          echo "\n=== Environment Variables ==="
           printenv | sort | head -50
           
-          echo "
-=== Tauri 相关检查 ==="
-          tauri --version || echo "Tauri CLI未找到"
-          echo "src-tauri目录内容:'"
-          ls -la src-tauri || echo "src-tauri目录不存在"
+          echo "\n=== Tauri Related Checks ==="
+          tauri --version || echo "Tauri CLI not found"
+          echo "src-tauri directory contents:"
+          ls -la src-tauri || echo "src-tauri directory does not exist"
 
-      - name: 构建 Tauri Android APK
+      - name: Build Tauri Android APK
         run: |
           echo "检查src-tauri/gen/android目录..."
           ls -la src-tauri/gen/android/ || true
