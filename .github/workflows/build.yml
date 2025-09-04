@@ -43,10 +43,10 @@ jobs:
       - name: 设置Cargo缓存 (优化版)
         uses: Swatinem/rust-cache@v2
         with:
-          key: cargo-cache-android-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            cargo-cache-android-${{ hashFiles('**/Cargo.lock') }}
-            cargo-cache-android-
+          cache-on-failure: true
+          key: v0-rust-cargo-cache-android-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: |
+            . -> target
       
       - name: Comprehensive Build Environment Check
         run: |
