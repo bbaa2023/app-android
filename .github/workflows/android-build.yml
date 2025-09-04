@@ -18,9 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_WORKSPACE_PATH: ${{ github.workspace }}
+      # 设置Android环境变量
+      ANDROID_NDK_VERSION: "25.1.8937393"
+      ANDROID_BUILD_TOOLS_VERSION: "33.0.2"
+      ANDROID_SDK_VERSION: "33"
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置JDK 17
         uses: actions/setup-java@v3
@@ -31,14 +35,22 @@ jobs:
 
       - name: 设置Android SDK
         uses: android-actions/setup-android@v2
+        with:
+          api-level: ${{ env.ANDROID_SDK_VERSION }}
+          build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+          ndk: ${{ env.ANDROID_NDK_VERSION }}
 
       - name: 安装Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          profile: minimal
-          override: true
+          components: rustfmt, clippy
           targets: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android
+
+      - name: 设置Cargo缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: cargo-cache-android
 
       - name: 设置Node.js
         uses: actions/setup-node@v3
@@ -52,21 +64,41 @@ jobs:
       - name: 安装Tauri CLI
         run: npm install -g @tauri-apps/cli
 
-      - name: 设置环境变量
+      - name: 创建.env文件
         run: |
-          echo "APP_NAME=${{ secrets.APP_NAME || 'TenRun WebView' }}" >> $GITHUB_ENV
-          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.tenrun.webview' }}" >> $GITHUB_ENV
+          echo "# 自动生成的环境变量，用于GitHub Actions构建" > .env
+          echo "APP_NAME=${{ secrets.APP_NAME || 'TenRun WebView' }}" >> .env
+          echo "BUNDLE_ID=${{ secrets.BUNDLE_ID || 'com.tenrun.webview' }}" >> .env
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "APP_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            echo "APP_VERSION=${{ github.event.inputs.version }}" >> .env
           elif [[ "${{ github.ref }}" =~ refs/tags/v(.+) ]]; then
-            echo "APP_VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+            echo "APP_VERSION=${BASH_REMATCH[1]}" >> .env
           else
-            echo "APP_VERSION=${{ secrets.APP_VERSION || '1.0.0' }}" >> $GITHUB_ENV
+            echo "APP_VERSION=${{ secrets.APP_VERSION || '1.0.0' }}" >> .env
           fi
-          echo "REMOTE_URL=${{ secrets.REMOTE_URL || 'https://example.com' }}" >> $GITHUB_ENV
+          echo "DEFAULT_URL=${{ secrets.REMOTE_URL || 'https://jp.wsxbz.xyz' }}" >> .env
+          echo "REMOTE_URL=${{ secrets.REMOTE_URL || 'https://jp.wsxbz.xyz' }}" >> .env
+          echo "WINDOW_WIDTH=800" >> .env
+          echo "WINDOW_HEIGHT=600" >> .env
+          echo "WINDOW_MIN_WIDTH=800" >> .env
+          echo "WINDOW_MIN_HEIGHT=600" >> .env
+          echo "ENABLE_DEV_TOOLS=false" >> .env
+          echo "ENABLE_NAVIGATION=true" >> .env
+          echo "ENABLE_URL_INPUT=true" >> .env
+          # 显示生成的.env文件内容进行调试
+          cat .env
 
       - name: 构建Web应用
         run: npm run build
+
+      - name: 验证前端构建结果
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "错误：前端构建失败，未找到dist目录" >&2
+            exit 1
+          fi
+          echo "前端构建成功，dist目录内容："
+          ls -la dist/
 
       - name: 清理旧的 Android 项目目录
         run: |
@@ -79,38 +111,87 @@ jobs:
       - name: 初始化 Tauri Android 项目
         run: |
           echo "使用npm script初始化Tauri Android项目..."
-          npm run tauri:android:init
+          npm run tauri:android:init || {
+            echo "初始化失败，显示错误日志并尝试重新初始化..." >&2
+            npm run tauri:android:init -- --verbose
+          }
+
+      - name: 验证Tauri Android初始化结果
+        run: |
+          if [ ! -d "src-tauri/gen/android" ]; then
+            echo "错误：Tauri Android初始化失败，未找到src-tauri/gen/android目录" >&2
+            exit 1
+          fi
+          echo "Tauri Android初始化成功，生成的目录结构："
+          ls -la src-tauri/gen/android/
 
       - name: 解码Keystore
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
-          mkdir -p src-tauri/gen/android
-          base64 -d keystore.b64 > src-tauri/gen/android/keystore.jks
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "使用secrets中的keystore..."
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > src-tauri/gen/android/keystore.jks
+          elif [ -f "keystore.b64" ]; then
+            echo "使用项目中的keystore.b64..."
+            base64 -d keystore.b64 > src-tauri/gen/android/keystore.jks
+          fi
 
       - name: 创建keystore.properties
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
-          cat > ${{ github.workspace }}/src-tauri/gen/android/keystore.properties << EOF
-          storeFile=keystore.jks
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          EOF
+          if [ -n "${{ secrets.KEYSTORE_PASSWORD }}" ] && [ -n "${{ secrets.KEY_ALIAS }}" ] && [ -n "${{ secrets.KEY_PASSWORD }}" ]; then
+            cat > ${{ github.workspace }}/src-tauri/gen/android/keystore.properties << EOF
+            storeFile=keystore.jks
+            storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+            keyAlias=${{ secrets.KEY_ALIAS }}
+            keyPassword=${{ secrets.KEY_PASSWORD }}
+            EOF
+            echo "keystore.properties创建成功"
+          fi
+
+      - name: 构建前环境检查
+        run: |
+          echo "环境变量检查："
+          printenv | grep -E "APP_|BUNDLE_|REMOTE_|DEFAULT_"
+          echo "系统信息："
+          node --version
+          npm --version
+          rustc --version
+          cargo --version
+          java --version
+          gradle --version || true
+          echo "Android环境检查："
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "PATH: $PATH"
 
       - name: 构建 Tauri Android APK
         run: |
-          echo "检查环境变量..."
-          echo "APP_NAME=${APP_NAME}"
-          echo "BUNDLE_ID=${BUNDLE_ID}"
-          echo "APP_VERSION=${APP_VERSION}"
           echo "检查src-tauri/gen/android目录..."
           ls -la src-tauri/gen/android/ || true
           echo "使用npm script构建Tauri Android APK..."
-          npm run tauri:android:build
+          npm run tauri:android:build -- --verbose
+
+      - name: 验证APK构建结果
+        run: |
+          APK_PATH="src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "错误：APK构建失败，未找到release APK文件" >&2
+            echo "检查所有可能的APK路径..."
+            find src-tauri/gen/android -name "*.apk" || true
+            exit 1
+          fi
+          echo "APK构建成功！文件信息："
+          ls -la "$APK_PATH"
+          echo "APK大小：$(du -h "$APK_PATH")"
 
       - name: 上传APK文件
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: ${{ github.workspace }}/src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
 
   release:
     needs: build
@@ -123,14 +204,32 @@ jobs:
           name: app-release
           path: release
 
+      - name: 验证下载的APK文件
+        run: |
+          if [ ! -f "release/app-release.apk" ]; then
+            echo "错误：未找到下载的APK文件" >&2
+            exit 1
+          fi
+          ls -la release/
+
       - name: 创建GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: release/app-release.apk
           name: Release ${{ github.ref_name }}
           body: |
-            Tauri WebView Android App ${{ github.ref_name }}
-            自动构建的Android APK发布版本
+            # Tauri WebView Android App ${{ github.ref_name }}
+            ## 自动构建的Android APK发布版本
+            
+            ### 版本信息
+            - 应用名称: ${{ secrets.APP_NAME || 'TenRun WebView' }}
+            - 应用包名: ${{ secrets.BUNDLE_ID || 'com.tenrun.webview' }}
+            - 应用版本: ${{ github.ref_name }}
+            
+            ### 更新说明
+            - 自动构建的发布版本
+            - 基于Tauri v2框架
+            - WebView应用
           draft: false
           prerelease: false
         env:

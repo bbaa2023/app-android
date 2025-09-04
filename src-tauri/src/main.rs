@@ -44,23 +44,63 @@ fn main() {
     // 从环境变量获取远程URL，如果没有设置则使用默认值
     let remote_url = env::var("DEFAULT_URL")
         .unwrap_or_else(|_| env::var("REMOTE_URL")
-        .unwrap_or_else(|_| "https://www.example.com".to_string()));
+        .unwrap_or_else(|_| "https://jp.wsxbz.xyz".to_string()));
     
-    // 打印加载的URL（仅在开发模式下）
+    // 从环境变量获取窗口配置
+    let window_width = env::var("WINDOW_WIDTH")
+        .unwrap_or_else(|_| "800".to_string())
+        .parse()
+        .unwrap_or(800);
+    
+    let window_height = env::var("WINDOW_HEIGHT")
+        .unwrap_or_else(|_| "600".to_string())
+        .parse()
+        .unwrap_or(600);
+    
+    let window_min_width = env::var("WINDOW_MIN_WIDTH")
+        .unwrap_or_else(|_| "800".to_string())
+        .parse()
+        .unwrap_or(800);
+    
+    let window_min_height = env::var("WINDOW_MIN_HEIGHT")
+        .unwrap_or_else(|_| "600".to_string())
+        .parse()
+        .unwrap_or(600);
+    
+    // 从环境变量获取功能配置
+    let enable_dev_tools = env::var("ENABLE_DEV_TOOLS")
+        .unwrap_or_else(|_| "false".to_string())
+        .parse()
+        .unwrap_or(false);
+    
+    // 打印加载的URL和配置（仅在开发模式下）
     #[cfg(debug_assertions)]
-    println!("Loading URL: {}", remote_url);
+    {
+        println!("Loading URL: {}", remote_url);
+        println!("Window config: {}x{} (min: {}x{})", window_width, window_height, window_min_width, window_min_height);
+        println!("DevTools enabled: {}", enable_dev_tools);
+    }
     
     // 初始化Tauri应用
     tauri::Builder::default()
         // 设置应用启动时的处理函数
         .setup(|app| {
             // 使用WebviewWindowBuilder创建窗口并加载远程URL
-            WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::External(remote_url.parse().unwrap()))
+            let mut window_builder = WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::External(remote_url.parse().unwrap()))
                 .title("TenRun WebView")
-                .width(800)
-                .height(600)
+                .width(window_width)
+                .height(window_height)
+                .min_width(window_min_width)
+                .min_height(window_min_height)
                 .fullscreen(false)
-                .resizable(true)
+                .resizable(true);
+            
+            // 如果启用了开发者工具
+            if enable_dev_tools {
+                window_builder = window_builder.devtools();
+            }
+            
+            window_builder
                 .build()
                 .expect("无法创建窗口");
             

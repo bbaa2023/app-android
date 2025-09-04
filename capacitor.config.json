@@ -2,25 +2,12 @@
   "appId": "com.tenrun.webview",
   "appName": "TenRun WebView",
   "webDir": "web",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  },
-  "android": {
-    "backgroundColor": "#2c3e50",
-    "allowMixedContent": false,
-    "captureInput": true,
-    "webContentsDebuggingEnabled": false,
-    "webView": {
-      "allowHardwareAcceleration": true
-    }
-  },
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 3000,
-      "backgroundColor": "#2c3e50",
-      "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP"
-    }
-  }
+  
+  // 注意：此配置文件已被弃用，项目现在使用Tauri框架
+  // Tauri应用的主要配置在src-tauri/tauri.conf.json中
+  // 此文件保留仅用于向后兼容，未来版本将完全移除
+  
+  // 以下配置仅作为参考，实际配置应在tauri.conf.json中设置
+  "_deprecated": true,
+  "_replacement": "请参考src-tauri/tauri.conf.json文件进行应用配置"
 }
