@@ -28,7 +28,6 @@
     "icon": ["../assets/icons/icon.png"],
     "android": {
       "minSdkVersion": 24,
-      "targetSdkVersion": 33,
       "versionCode": 1
     }
   },
